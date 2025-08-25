@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 import logo_dark from "../assets/logo-dark.svg";
 import logo_light from "../assets/logo-light.svg";
-import profileImg from "../assets/logo.svg";
+import profileImg from "../../public/logo.svg";
 
-const Navbar = ({ isLoggedIn }) => {
+const Navbar = ({ isLoggedIn, toggleSidebar }) => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -39,12 +39,12 @@ const Navbar = ({ isLoggedIn }) => {
   };
 
   return (
-    <div className="navbar px-4 py-3 flex justify-between items-center">
+    <div className="navbar px-4 py-3 flex justify-between items-center bg-white dark:bg-[#212121] sticky top-0 z-30">
       <div className="left flex items-center gap-3">
-        <span className="ham-burger cursor-pointer">
+        <span className="ham-burger cursor-pointer" onClick={toggleSidebar}>
           <AlignJustify />
         </span>
-        <div className="logo cursor-pointer">
+        <div className="logo cursor-pointer" onClick={() => navigate("/")}>
           <img src={logo_light} alt="logo" className="w-40 block dark:hidden" />
           <img src={logo_dark} alt="logo" className="w-40 hidden dark:block" />
         </div>
@@ -54,7 +54,7 @@ const Navbar = ({ isLoggedIn }) => {
           <input
             type="text"
             placeholder="Search"
-            className="w-full border border-[#c6c6c6] dark:border-[hsl(0,0%,18.82%)] rounded-full px-4 py-2 pr-12 focus:outline-blue-600 focus:border-none"
+            className="w-full border border-[#c6c6c6] dark:border-[hsl(0,0%,18.82%)] rounded-full px-4 py-2 pr-12 focus:outline-blue-600 focus:border-none bg-white dark:bg-[#232323] text-black dark:text-white"
           />
           <button
             type="button"
@@ -95,7 +95,6 @@ const Navbar = ({ isLoggedIn }) => {
                     />
                     <div>
                       <div className="font-semibold text-black dark:text-white">Profile</div>
-                      {/* You can show username/email here */}
                       <div className="text-xs text-gray-500 dark:text-gray-400">user@example.com</div>
                     </div>
                   </div>
@@ -139,4 +138,5 @@ const Navbar = ({ isLoggedIn }) => {
     </div>
   );
 };
+
 export default Navbar;
