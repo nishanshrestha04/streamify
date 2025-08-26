@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import logo_dark from "../assets/logo-dark.svg";
 import logo_light from "../assets/logo-light.svg";
-import profileImg from "../../public/logo.svg";
+import profileImg from "/logo.svg";
 
 const Navbar = ({ isLoggedIn, toggleSidebar }) => {
   const navigate = useNavigate();
@@ -67,7 +67,10 @@ const Navbar = ({ isLoggedIn, toggleSidebar }) => {
       <div className="right flex items-center gap-3">
         {isLoggedIn ? (
           <>
-            <button className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full border border-[#c6c6c6] dark:border-[hsl(0,0%,18.82%)] text-black dark:text-white transition">
+            <button 
+              className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full border border-[#c6c6c6] dark:border-[hsl(0,0%,18.82%)] text-black dark:text-white transition"
+              onClick={() => navigate("/create-video")}
+            >
               <Plus />
               Create
             </button>

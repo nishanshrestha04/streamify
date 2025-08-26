@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import logo_light from "../assets/logo-light.svg";
 import logo_dark from "../assets/logo-dark.svg";
 import api from "../api";
@@ -97,6 +97,7 @@ const Register = () => {
       .finally(() => {
         setLoading(false);
       });
+    <Navigate to="/login" replace={true} />;
   };
 
   return (
