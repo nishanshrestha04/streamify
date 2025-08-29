@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { showLoginPromptToast } from '../utils/toast.jsx';
+import { formatViews, formatTimeAgo } from '../utils/videoUtils';
 import api from '../api';
 import VideoPlayer from '../Components/VideoPlayer';
 import VideoInfo from '../Components/VideoInfo';
@@ -145,38 +146,6 @@ const VideoWatch = () => {
         showLoginPromptToast('🔐 Please login to like comments', () => navigate('/login'));
       }
     }
-  };
-
-  const formatViews = (views) => {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M`;
-    } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K`;
-    }
-    return views.toString();
-  };
-
-  const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now - date;
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-    
-    const diffInWeeks = Math.floor(diffInDays / 7);
-    if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
-    
-    const diffInMonths = Math.floor(diffInDays / 30);
-    if (diffInMonths < 12) return `${diffInMonths}mo ago`;
-    
-    const diffInYears = Math.floor(diffInDays / 365);
-    return `${diffInYears}y ago`;
   };
 
   const handleVideoClick = (videoId) => {

@@ -85,7 +85,7 @@ const VideoPlayer = ({ video, onTimeUpdate }) => {
   };
 
   const handleLoadedMetadata = () => {
-    if (videoRef.current) {
+    if (videoRef.current && videoRef.current.duration && isFinite(videoRef.current.duration)) {
       const videoDuration = videoRef.current.duration;
       setDuration(videoDuration);
       console.log('Video metadata loaded, duration:', videoDuration);
@@ -93,14 +93,23 @@ const VideoPlayer = ({ video, onTimeUpdate }) => {
   };
 
   const handleCanPlay = () => {
-    console.log('Video can start playing');
+    // Set duration here as a fallback if not set in loadedmetadata
+    if (videoRef.current && videoRef.current.duration && isFinite(videoRef.current.duration) && duration === 0) {
+      const videoDuration = videoRef.current.duration;
+      setDuration(videoDuration);
+      console.log('Video can start playing, duration set:', videoDuration);
+    }
   };
 
   const handleDurationChange = () => {
-    if (videoRef.current) {
+    // Only set duration if it hasn't been set yet or if it's significantly different
+    if (videoRef.current && videoRef.current.duration && isFinite(videoRef.current.duration)) {
       const videoDuration = videoRef.current.duration;
-      setDuration(videoDuration);
-      console.log('Duration changed:', videoDuration);
+      // Only update if duration is not set yet or if there's a significant change (more than 1 second)
+      if (duration === 0 || Math.abs(duration - videoDuration) > 1) {
+        setDuration(videoDuration);
+        console.log('Duration changed:', videoDuration);
+      }
     }
   };
 
@@ -164,12 +173,22 @@ const VideoPlayer = ({ video, onTimeUpdate }) => {
     if (video?.video_url && videoRef.current) {
       const videoElement = videoRef.current;
       
+      // Reset duration when video changes
+      setDuration(0);
+      setCurrentTime(0);
+      
       const handleLoadStart = () => {
         console.log('Video load started');
       };
       
       const handleLoadedData = () => {
         console.log('Video data loaded, attempting autoplay');
+        
+        // Ensure duration is properly set
+        if (videoElement.duration && isFinite(videoElement.duration) && duration === 0) {
+          setDuration(videoElement.duration);
+          console.log('Duration set from loadeddata:', videoElement.duration);
+        }
         
         const attemptAutoplay = async () => {
           try {
@@ -257,6 +276,15 @@ const VideoPlayer = ({ video, onTimeUpdate }) => {
           onLoadedMetadata={handleLoadedMetadata}
           onCanPlay={handleCanPlay}
           onDurationChange={handleDurationChange}
+          onLoadStart={() => {
+            // Additional early duration check
+            setTimeout(() => {
+              if (videoRef.current && videoRef.current.duration && isFinite(videoRef.current.duration) && duration === 0) {
+                setDuration(videoRef.current.duration);
+                console.log('Duration set from loadstart timeout:', videoRef.current.duration);
+              }
+            }, 500);
+          }}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onClick={togglePlay}

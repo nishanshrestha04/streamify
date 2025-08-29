@@ -17,6 +17,35 @@ from accounts.models import Users
 import os
 from datetime import timedelta
 from django.http import JsonResponse
+import ffmpeg
+
+import ffmpeg
+
+def extract_video_duration(video_file_path):
+    """Extract video duration using ffmpeg"""
+    try:
+        probe = ffmpeg.probe(video_file_path)
+        
+        # Find the video stream
+        video_stream = None
+        for stream in probe['streams']:
+            if stream['codec_type'] == 'video':
+                video_stream = stream
+                break
+        
+        if video_stream and 'duration' in video_stream:
+            duration = float(video_stream['duration'])
+            return timedelta(seconds=duration)
+        
+        # Fallback: try to get duration from format
+        if 'format' in probe and 'duration' in probe['format']:
+            duration = float(probe['format']['duration'])
+            return timedelta(seconds=duration)
+            
+        return None
+    except Exception as e:
+        print(f"Error extracting video duration: {e}")
+        return None
 
 @method_decorator(csrf_exempt, name='dispatch')
 class VideoUploadView(generics.CreateAPIView):
@@ -25,7 +54,7 @@ class VideoUploadView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def perform_create(self, serializer):
-        """Set the uploader to the authenticated user"""
+        """Set the uploader to the authenticated user and extract video metadata"""
         try:
             # Get the Users model instance from the authenticated user
             if hasattr(self.request.user, 'users_instance'):
@@ -34,12 +63,22 @@ class VideoUploadView(generics.CreateAPIView):
             else:
                 # Fallback: try to find by username
                 user = Users.objects.get(username=self.request.user.username)
-                
-            serializer.save(
+            
+            # Save the video first
+            video_instance = serializer.save(
                 uploader=user,
                 file_size=serializer.validated_data['video_file'].size,
                 processing_status='ready'
             )
+            
+            # Extract video duration
+            if video_instance.video_file:
+                video_path = video_instance.video_file.path
+                duration = extract_video_duration(video_path)
+                if duration:
+                    video_instance.duration = duration
+                    video_instance.save()
+                    
         except Users.DoesNotExist:
             from rest_framework.exceptions import ValidationError
             raise ValidationError("User profile not found")

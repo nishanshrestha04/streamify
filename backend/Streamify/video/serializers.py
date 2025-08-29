@@ -58,19 +58,9 @@ class VideoSerializer(serializers.ModelSerializer):
             else:
                 return f"{minutes}:{seconds:02d}"
         
-        # For videos without duration data, estimate based on file size
-        if hasattr(obj, 'file_size') and obj.file_size:
-            if obj.file_size < 1000000:  # < 1MB
-                return "0:04"  # 4 seconds
-            elif obj.file_size < 5000000:  # < 5MB
-                return "0:15"  # 15 seconds
-            elif obj.file_size < 10000000:  # < 10MB
-                return "1:30"  # 1 minute 30 seconds
-            else:
-                return "3:45"  # 3 minutes 45 seconds
-        
-        # Final fallback
-        return "0:04"
+        # Only show duration if we have extracted it from the video file
+        # No file size estimation - return unknown duration
+        return "0:00"
     
     def get_user_reaction(self, obj):
         request = self.context.get('request')
@@ -172,19 +162,9 @@ class VideoListSerializer(serializers.ModelSerializer):
             else:
                 return f"{minutes}:{seconds:02d}"
         
-        # For videos without duration data, estimate based on file size
-        if hasattr(obj, 'file_size') and obj.file_size:
-            if obj.file_size < 1000000:  # < 1MB
-                return "0:04"  # 4 seconds
-            elif obj.file_size < 5000000:  # < 5MB
-                return "0:15"  # 15 seconds
-            elif obj.file_size < 10000000:  # < 10MB
-                return "1:30"  # 1 minute 30 seconds
-            else:
-                return "3:45"  # 3 minutes 45 seconds
-        
-        # Final fallback
-        return "0:04"
+        # Only show duration if we have extracted it from the video file
+        # No file size estimation - return unknown duration
+        return "0:00"
 
     def get_user_reaction(self, obj):
         request = self.context.get('request')
