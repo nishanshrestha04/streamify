@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { toastConfig } from "./utils/toast.jsx";
 import Register from "./pages/Register";
 import Navbar from "./Components/Navbar";
 import Login from "./pages/Login";
@@ -132,6 +135,7 @@ function App() {
   return (
     <Router>
       <Layout />
+      <ToastContainer {...toastConfig} />
     </Router>
   );
 }

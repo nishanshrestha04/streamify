@@ -150,6 +150,11 @@ const Home = () => {
     fetchVideos();
   }, []);
 
+  // Set document title for home page
+  useEffect(() => {
+    document.title = 'Streamify';
+  }, []);
+
   const fetchVideos = async () => {
     try {
       setLoading(true);

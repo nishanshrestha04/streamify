@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import logo_light from "../assets/logo-light.svg";
 import logo_dark from "../assets/logo-dark.svg";
 import api from "../api";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { showSuccessToast, showErrorToast } from "../utils/toast.jsx";
 
 const fields = [
   { name: "first_name", type: "text", label: "First Name", required: true },
@@ -27,6 +26,11 @@ const Register = () => {
   const [focused, setFocused] = useState({});
   const navigate = useNavigate();
 
+  // Set document title for register page
+  useEffect(() => {
+    document.title = 'Create Account - Streamify';
+  }, []);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -45,7 +49,7 @@ const Register = () => {
     api
       .post("accounts/user/", form)
       .then(() => {
-        toast.success("User created!");
+        showSuccessToast("🎉 Account created successfully");
         setForm({
           username: "",
           first_name: "",
@@ -53,6 +57,10 @@ const Register = () => {
           email: "",
           password: "",
         });
+        // Quick redirect to login page
+        setTimeout(() => {
+          navigate("/login");
+        }, 0);
       })
       .catch((err) => {
         const data = err?.response?.data;
@@ -91,7 +99,7 @@ const Register = () => {
         ) {
           errorMsg = "Email is already in use";
         }
-        toast.error(errorMsg);
+        showErrorToast(`❌ ${errorMsg}`);
       })
 
       .finally(() => {
@@ -102,7 +110,6 @@ const Register = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-[#181818]">
-      <ToastContainer position="top-center" />
       <form
         onSubmit={handleSubmit}
         className="bg-white dark:bg-[#232323] shadow-lg rounded-xl p-8 w-full max-w-md space-y-6"
@@ -166,6 +173,19 @@ const Register = () => {
         >
           Go Back
         </button>
+        
+        <div className="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors underline"
+            >
+              Login here
+            </button>
+          </p>
+        </div>
       </form>
     </div>
   );

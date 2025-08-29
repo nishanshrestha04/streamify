@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { showLoginPromptToast } from '../utils/toast.jsx';
 import api from '../api';
 
 const LikeButton = ({ videoId, initialLikes, initialDislikes, userReaction, size = 16, showCounts = true }) => {
@@ -7,6 +9,7 @@ const LikeButton = ({ videoId, initialLikes, initialDislikes, userReaction, size
   const [dislikes, setDislikes] = useState(initialDislikes || 0);
   const [reaction, setReaction] = useState(userReaction);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleReaction = async (action) => {
     if (loading) return;
@@ -21,7 +24,7 @@ const LikeButton = ({ videoId, initialLikes, initialDislikes, userReaction, size
     } catch (err) {
       console.error('Error updating reaction:', err);
       if (err.response?.status === 401) {
-        alert('Please login to like/dislike videos');
+        showLoginPromptToast('🔐 Please login to like/dislike videos', () => navigate('/login'));
       }
     } finally {
       setLoading(false);

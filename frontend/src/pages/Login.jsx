@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo_light from "../assets/logo-light.svg";
 import logo_dark from "../assets/logo-dark.svg";
 import api from "../api";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { showSuccessToast, showErrorToast } from "../utils/toast.jsx";
 
 const Login = ({ setIsLoggedIn }) => {
   const [form, setForm] = useState({
@@ -14,6 +13,11 @@ const Login = ({ setIsLoggedIn }) => {
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState({});
   const navigate = useNavigate();
+
+  // Set document title for login page
+  useEffect(() => {
+    document.title = 'Login - Streamify';
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -33,7 +37,7 @@ const Login = ({ setIsLoggedIn }) => {
     api
       .post("accounts/login/", form)
       .then((res) => {
-        toast.success("Login successful!");
+        showSuccessToast("🎉 Login successful! Welcome back!");
         setIsLoggedIn(true);
         localStorage.setItem("accessToken", res.data.access);
         localStorage.setItem("refreshToken", res.data.refresh);
@@ -66,7 +70,7 @@ const Login = ({ setIsLoggedIn }) => {
         ) {
           errorMsg = "Invalid username or password";
         }
-        toast.error(errorMsg);
+        showErrorToast(`❌ ${errorMsg}`);
       })
       .finally(() => {
         setLoading(false);
@@ -75,7 +79,6 @@ const Login = ({ setIsLoggedIn }) => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-[#181818]">
-      <ToastContainer position="top-center" />
       <form
         onSubmit={handleSubmit}
         className="bg-white dark:bg-[#232323] shadow-lg rounded-xl p-8 w-full max-w-md space-y-6"
@@ -142,6 +145,19 @@ const Login = ({ setIsLoggedIn }) => {
         >
           Go Back
         </button>
+        
+        <div className="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/register")}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors underline"
+            >
+              Create one here
+            </button>
+          </p>
+        </div>
       </form>
     </div>
   );

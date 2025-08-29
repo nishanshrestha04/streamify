@@ -1,0 +1,247 @@
+/* Beautiful custom toast animations and styles */
+
+/* Enhanced toast animation */
+.Toastify__toast {
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  animation: toastSlideIn 0.3s ease-out;
+}
+
+/* Clickable toast styling */
+.Toastify__toast--clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: visible;
+}
+
+.Toastify__toast--clickable:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.Toastify__toast--clickable::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  border-radius: 14px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.Toastify__toast--clickable:hover::before {
+  opacity: 1;
+}
+
+/* Remove the ::after content for login prompt since we have a button now */
+.Toastify__toast--clickable::after {
+  display: none;
+}
+
+@keyframes loginPromptPulse {
+  0%, 70%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* Ripple effect on click */
+.Toastify__toast--clickable:active {
+  transform: scale(0.98);
+}
+
+.Toastify__toast--clickable:active::before {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Custom Video Player Styles */
+.slider {
+  background: linear-gradient(to right, #ef4444 0%, #dc2626 var(--progress, 0%), rgba(255, 255, 255, 0.3) var(--progress, 0%), rgba(255, 255, 255, 0.3) 100%);
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid white;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  width: 16px;
+  height: 16px;
+  background: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid white;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  width: 16px;
+  height: 16px;
+  background: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Video progress bar hover effects */
+.group\/progress:hover .blur-sm {
+  opacity: 0.8 !important;
+}
+
+/* Smooth transitions for video controls */
+.video-control-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-control-button:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(-100px) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Success toast custom styling */
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-left: 4px solid #065f46 !important;
+}
+
+/* Error toast custom styling */
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border-left: 4px solid #991b1b !important;
+}
+
+/* Info toast custom styling */
+.Toastify__toast--info {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  border-left: 4px solid #1e3a8a !important;
+}
+
+/* Warning toast custom styling */
+.Toastify__toast--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border-left: 4px solid #92400e !important;
+}
+
+/* Progress bar styling */
+.Toastify__progress-bar {
+  background: rgba(255, 255, 255, 0.8) !important;
+  height: 3px !important;
+}
+
+/* Close button styling */
+.Toastify__close-button {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  opacity: 0.8 !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1 !important;
+}
+
+/* Toast container responsive positioning */
+@media (max-width: 768px) {
+  .Toastify__toast-container {
+    width: calc(100vw - 2rem) !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    margin: 0 !important;
+  }
+  
+  .Toastify__toast {
+    margin-bottom: 0.5rem !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* Dark mode specific adjustments */
+@media (prefers-color-scheme: dark) {
+  .Toastify__toast {
+    box-shadow: 0 8px 32px rgba(255, 255, 255, 0.05) !important;
+  }
+}
+
+/* Pulse animation for urgent messages */
+.toast-urgent {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Bounce animation for success messages */
+.toast-bounce {
+  animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}

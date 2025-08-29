@@ -57,11 +57,9 @@ class LoginView(generics.GenericAPIView):
         try:
             user = Users.objects.get(username=username)
             
-            # Check password (assuming plain text for now, should be hashed in production)
             if user.password == password:
                 serializer = self.get_serializer(user)
-                
-                # Use our custom JWT token creation
+            
                 refresh = CustomJWTToken.for_user(user)
                 access_token = str(refresh.access_token)
                 refresh_token = str(refresh)
