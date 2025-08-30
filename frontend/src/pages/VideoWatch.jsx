@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { showLoginPromptToast } from '../utils/toast.jsx';
+import { showLoginPromptToast, showInfoToast } from '../utils/toast.jsx';
 import { formatViews, formatTimeAgo } from '../utils/videoUtils';
 import api from '../api';
 import VideoPlayer from '../Components/VideoPlayer';
@@ -21,9 +21,22 @@ const VideoWatch = () => {
   const [userReaction, setUserReaction] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [relatedVideos, setRelatedVideos] = useState([]);
+  const [loadingRelatedVideos, setLoadingRelatedVideos] = useState(false);
+  const [playNextFunction, setPlayNextFunction] = useState(null);
 
   useEffect(() => {
     if (id) {
+      // Reset states when navigating to a new video
+      setLoading(true);
+      setError(null);
+      setVideo(null);
+      setComments([]);
+      setUserReaction(null);
+      setRelatedVideos([]);
+      setLoadingRelatedVideos(false);
+      setNewComment('');
+      
+      // Fetch new video data
       fetchVideo();
       fetchComments();
       getCurrentUser();
@@ -44,6 +57,34 @@ const VideoWatch = () => {
       document.title = 'Streamify';
     };
   }, [video?.title]);
+
+  // Keyboard shortcuts for video navigation
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      // Only handle keyboard shortcuts if not focused on an input field
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      switch (event.key) {
+        case 'n':
+        case 'N':
+          // Play next video
+          if (relatedVideos.length > 0) {
+            handleVideoClick(relatedVideos[0].id);
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [relatedVideos]);
 
   const getCurrentUser = async () => {
     try {
@@ -83,12 +124,21 @@ const VideoWatch = () => {
 
   const fetchRelatedVideos = async () => {
     try {
+      setLoadingRelatedVideos(true);
       const response = await api.get('videos/');
-      // Filter out current video and get a subset
-      const filtered = response.data.results?.filter(v => v.id !== parseInt(id)) || [];
-      setRelatedVideos(filtered.slice(0, 10));
+      
+      // The API returns an array directly, not wrapped in results
+      const allVideos = Array.isArray(response.data) ? response.data : response.data.results || [];
+      
+      // Filter out current video and show ALL other videos
+      const filtered = allVideos.filter(v => v.id !== parseInt(id));
+      // Sort by created_at (newest first) - show all videos, not just 10
+      const sorted = filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setRelatedVideos(sorted); // Show all videos instead of limiting to 10
     } catch (err) {
-      console.error('Error fetching related videos:', err);
+      console.error('Error fetching all videos:', err);
+    } finally {
+      setLoadingRelatedVideos(false);
     }
   };
 
@@ -148,9 +198,27 @@ const VideoWatch = () => {
     }
   };
 
-  const handleVideoClick = (videoId) => {
-    navigate(`/video/${videoId}`);
+  const handleVideoClick = React.useCallback((videoId) => {
+    if (videoId) {
+      navigate(`/watch/${videoId}`);
+    }
+  }, [navigate]);
+
+  const handleVideoEnd = () => {
+    // Auto-play next video when current video ends
+    if (relatedVideos.length > 0) {
+      const nextVideo = relatedVideos[0];
+      setTimeout(() => {
+        handleVideoClick(nextVideo.id);
+      }, 1000); // Wait 1 second before auto-playing next video
+    } else {
+      showInfoToast('🎬 No more videos to play', { autoClose: 3000 });
+    }
   };
+
+  const handlePlayNextFromSidebar = React.useCallback((playNextFn) => {
+    setPlayNextFunction(() => playNextFn);
+  }, []);
 
   if (loading) {
     return (
@@ -185,11 +253,16 @@ const VideoWatch = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#181818]">
-      <div className="max-w-full mx-auto p-6">
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      <div className="max-w-full mx-auto p-4 lg:p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
           {/* Video Player Section */}
-          <div className="xl:col-span-3">
-            <VideoPlayer video={video} />
+          <div className="lg:col-span-2 xl:col-span-3">
+            <VideoPlayer 
+              video={video} 
+              onVideoEnd={handleVideoEnd}
+              onPlayNext={playNextFunction}
+              hasNextVideo={relatedVideos.length > 0}
+            />
             
             <VideoInfo 
               video={video}
@@ -215,12 +288,15 @@ const VideoWatch = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="xl:col-span-1">
+          <div className="lg:col-span-1 xl:col-span-1">
             <VideoSidebar
               relatedVideos={relatedVideos}
               onVideoClick={handleVideoClick}
               formatViews={formatViews}
               formatTimeAgo={formatTimeAgo}
+              currentVideoId={parseInt(id)}
+              loading={loadingRelatedVideos}
+              onPlayNext={handlePlayNextFromSidebar}
             />
           </div>
         </div>

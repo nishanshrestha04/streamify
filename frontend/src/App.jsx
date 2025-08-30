@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { toastConfig } from "./utils/toast.jsx";
@@ -10,6 +10,12 @@ import Home from "./pages/Home";
 import CreateVideo from "./pages/CreateVideo";
 import VideoWatch from "./pages/VideoWatch";
 import Sidebar from "./Components/Sidebar";
+
+// Wrapper component to ensure VideoWatch remounts on ID change
+function VideoWatchWrapper() {
+  const { id } = useParams();
+  return <VideoWatch key={id} />;
+}
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -107,7 +113,10 @@ function App() {
                   }
                 />
                 <Route path="/" element={<Home />} />
-                <Route path="/watch/:id" element={<VideoWatch />} />
+                <Route 
+                  path="/watch/:id" 
+                  element={<VideoWatchWrapper />} 
+                />
                 <Route 
                   path="/create-video" 
                   element={

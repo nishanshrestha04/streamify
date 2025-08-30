@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, SkipForward } from 'lucide-react';
 
-const VideoPlayer = ({ video, onTimeUpdate }) => {
+const VideoPlayer = ({ video, onTimeUpdate, onVideoEnd, onPlayNext, hasNextVideo }) => {
   // Video player state
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
+  const [isMuted, setIsMuted] = useState(false); // Start unmuted with full volume
   const [showControls, setShowControls] = useState(true);
   const videoRef = useRef(null);
   const progressRef = useRef(null);
@@ -276,6 +276,12 @@ const VideoPlayer = ({ video, onTimeUpdate }) => {
           onLoadedMetadata={handleLoadedMetadata}
           onCanPlay={handleCanPlay}
           onDurationChange={handleDurationChange}
+          onEnded={() => {
+            setIsPlaying(false);
+            if (onVideoEnd) {
+              onVideoEnd();
+            }
+          }}
           onLoadStart={() => {
             // Additional early duration check
             setTimeout(() => {
@@ -357,6 +363,17 @@ const VideoPlayer = ({ video, onTimeUpdate }) => {
                 >
                   {isPlaying ? <Pause size={20} /> : <Play size={20} />}
                 </button>
+                
+                {/* Next Video Button */}
+                {hasNextVideo && onPlayNext && (
+                  <button
+                    onClick={() => onPlayNext && onPlayNext()}
+                    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+                    title="Play next video (N)"
+                  >
+                    <SkipForward size={20} />
+                  </button>
+                )}
                 
                 <div className="flex items-center gap-2">
                   <button

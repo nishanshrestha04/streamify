@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from .models import Video, VideoLike, VideoView
+from .models import Video, VideoLike
 from accounts.models import Users
 import os
-from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 
 class UploaderSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,7 +45,6 @@ class VideoSerializer(serializers.ModelSerializer):
         return None
     
     def get_formatted_duration(self, obj):
-        # If we have a real duration from the video file, use it
         if obj.duration:
             total_seconds = int(obj.duration.total_seconds())
             hours = total_seconds // 3600
@@ -57,9 +55,6 @@ class VideoSerializer(serializers.ModelSerializer):
                 return f"{hours}:{minutes:02d}:{seconds:02d}"
             else:
                 return f"{minutes}:{seconds:02d}"
-        
-        # Only show duration if we have extracted it from the video file
-        # No file size estimation - return unknown duration
         return "0:00"
     
     def get_user_reaction(self, obj):
@@ -103,7 +98,6 @@ class VideoUploadSerializer(serializers.ModelSerializer):
         return value
     
     def validate_thumbnail(self, value):
-        """Validate thumbnail image"""
         if value:
             # Check file size (limit to 5MB)
             max_size = 5 * 1024 * 1024  # 5MB
@@ -161,9 +155,6 @@ class VideoListSerializer(serializers.ModelSerializer):
                 return f"{hours}:{minutes:02d}:{seconds:02d}"
             else:
                 return f"{minutes}:{seconds:02d}"
-        
-        # Only show duration if we have extracted it from the video file
-        # No file size estimation - return unknown duration
         return "0:00"
 
     def get_user_reaction(self, obj):
