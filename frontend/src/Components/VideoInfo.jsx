@@ -1,6 +1,7 @@
 import React from 'react';
 import { Eye, ThumbsUp, ThumbsDown, Share2, Download } from 'lucide-react';
 import LikeButton from './LikeButton';
+import UserAvatar from './UserAvatar';
 
 const VideoInfo = ({ 
   video, 
@@ -10,12 +11,6 @@ const VideoInfo = ({
   formatViews, 
   formatTimeAgo 
 }) => {
-  const getUserInitial = (user) => {
-    if (user?.first_name) return user.first_name[0];
-    if (user?.username) return user.username[0];
-    return 'U';
-  };
-
   return (
     <div className="bg-white dark:bg-[#212121] rounded-lg p-6">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
@@ -73,9 +68,7 @@ const VideoInfo = ({
 
       {/* Channel Info */}
       <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-[#2a2a2a] rounded-lg">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
-          {getUserInitial(video.uploader)}
-        </div>
+        <UserAvatar user={video.uploader} size="lg" />
         
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">

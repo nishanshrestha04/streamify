@@ -7,6 +7,8 @@ class Users(models.Model):
     last_name = models.CharField(max_length=30, blank=True)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=128)
+    bio = models.TextField(blank=True, default='')
+    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

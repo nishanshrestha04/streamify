@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { User, Calendar, Video, Eye, ThumbsUp, Settings, Upload } from 'lucide-react';
-import { formatViews, formatTimeAgo } from '../utils/videoUtils';
+import { Calendar, Eye, Settings, ThumbsUp, Video } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import UserAvatar from '../Components/UserAvatar';
 import api from '../api';
+import { formatTimeAgo, formatViews } from '../utils/videoUtils';
 
-const Profile = () => {
+const Profile = ({ onUserUpdate, currentUser: propCurrentUser }) => {
   const { username } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(propCurrentUser || null);
   const [activeTab, setActiveTab] = useState('videos');
   const [stats, setStats] = useState({
     totalViews: 0,
@@ -19,17 +20,24 @@ const Profile = () => {
     totalLikes: 0
   });
 
+  // Update currentUser when propCurrentUser changes
+  useEffect(() => {
+    if (propCurrentUser) {
+      setCurrentUser(propCurrentUser);
+    }
+  }, [propCurrentUser]);
+
   useEffect(() => {
     if (username) {
       fetchUserProfile();
     } else {
-      // If no username provided, show current user's profile
       fetchCurrentUserProfile();
     }
-    getCurrentUser();
-  }, [username]);
+    if (!propCurrentUser) {
+      getCurrentUser();
+    }
+  }, [username, propCurrentUser]);
 
-  // Update document title when user data changes
   useEffect(() => {
     if (user?.first_name) {
       document.title = `${user.first_name} ${user.last_name} - Streamify`;
@@ -37,7 +45,6 @@ const Profile = () => {
       document.title = 'Profile - Streamify';
     }
 
-    // Cleanup: Reset title when component unmounts
     return () => {
       document.title = 'Streamify';
     };
@@ -49,7 +56,6 @@ const Profile = () => {
       const response = await api.get('auth/user/');
       setCurrentUser(response.data);
     } catch (err) {
-      // User not logged in
       setCurrentUser(null);
     }
   };
@@ -60,6 +66,7 @@ const Profile = () => {
       setUser(response.data);
       fetchUserVideos(response.data);
     } catch (err) {
+      console.error('Error fetching current user profile:', err);
       setError('Failed to load profile');
       setLoading(false);
     }
@@ -109,7 +116,42 @@ const Profile = () => {
     navigate(`/@${username}`);
   };
 
-  const isOwnProfile = currentUser && user && currentUser.id === user.id;
+  const handlePhotoUpdate = (newPhotoUrl) => {
+    // Update the user state with the new photo URL
+    setUser(prevUser => ({
+      ...prevUser,
+      profile_photo: newPhotoUrl
+    }));
+    
+    // Also update currentUser if this is the user's own profile
+    if (currentUser && user && currentUser.id === user.id) {
+      const updatedUser = {
+        ...currentUser,
+        profile_photo: newPhotoUrl
+      };
+      setCurrentUser(updatedUser);
+      
+      // Update the parent component's user state (for navbar)
+      if (onUserUpdate) {
+        onUserUpdate(updatedUser);
+      }
+    }
+  };
+
+  // Determine if this is the user's own profile
+  const isOwnProfile = () => {
+    // If no username in URL, this is definitely the current user's profile page
+    if (!username) return true;
+    
+    // If username matches current user's username, it's their profile
+    if (currentUser && user) {
+      return currentUser.id === user.id || currentUser.username === user.username;
+    }
+    
+    return false;
+  };
+
+  const isOwn = isOwnProfile();
 
   if (loading) {
     return (
@@ -148,9 +190,7 @@ const Profile = () => {
           <div className="flex flex-col md:flex-row items-start gap-6">
             {/* Profile Avatar */}
             <div className="flex-shrink-0">
-              <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <User className="w-16 h-16 text-white" />
-              </div>
+              <UserAvatar user={user} size="2xl" />
             </div>
 
             {/* Profile Info */}
@@ -185,10 +225,10 @@ const Profile = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 mt-4 md:mt-0">
-                  {isOwnProfile ? (
+                  {isOwn ? (
                     <>
                       <button
-                        onClick={() => navigate('/settings')}
+                        onClick={() => navigate('/edit-profile')}
                         className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
                       >
                         <Settings className="w-4 h-4" />
@@ -245,11 +285,11 @@ const Profile = () => {
                   No videos uploaded yet
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {isOwnProfile 
+                  {isOwn 
                     ? "Upload your first video to get started!" 
                     : "This user hasn't uploaded any videos yet."}
                 </p>
-                {isOwnProfile && (
+                {isOwn && (
                   <button
                     onClick={() => navigate('/create-video')}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
@@ -317,7 +357,7 @@ const Profile = () => {
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">Description</h4>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Welcome to my channel! I create amazing content for you to enjoy.
+                  {user?.bio || "No bio available."}
                 </p>
               </div>
               <div>
@@ -344,18 +384,6 @@ const Profile = () => {
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {(activeTab === 'shorts' || activeTab === 'playlists') && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">🚧</div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Coming Soon
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              {activeTab === 'shorts' ? 'Shorts' : 'Playlists'} feature will be available soon.
-            </p>
           </div>
         )}
       </div>

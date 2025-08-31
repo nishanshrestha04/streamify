@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 import logo_dark from "../assets/logo-dark.svg";
 import logo_light from "../assets/logo-light.svg";
-import profileImg from "/logo.svg";
+import UserAvatar from "./UserAvatar";
 
-const Navbar = ({ isLoggedIn, toggleSidebar }) => {
+const Navbar = ({ isLoggedIn, toggleSidebar, userDetail }) => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -82,38 +82,33 @@ const Navbar = ({ isLoggedIn, toggleSidebar }) => {
                 className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full text-black dark:text-white transition"
                 onClick={() => setDropdownOpen((open) => !open)}
               >
-                <img
-                  src={profileImg}
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full object-cover"
-                />
+                <UserAvatar user={userDetail} size="sm" />
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#232323] border border-[#c6c6c6] dark:border-[hsl(0,0%,18.82%)] rounded-lg shadow-lg z-50">
+                <div className="absolute  right-0 mt-2 w-80 bg-white dark:bg-[#232323] border border-[#c6c6c6] dark:border-[hsl(0,0%,18.82%)] rounded-lg shadow-lg z-50">
                   <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                    <img
-                      src={profileImg}
-                      alt="Profile"
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <UserAvatar user={userDetail} size="md" />
                     <div>
-                      <div className="font-semibold text-black dark:text-white">Profile</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">user@example.com</div>
+                      <div className="font-semibold text-black dark:text-white">{userDetail?.first_name} {userDetail?.last_name}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{userDetail?.username}</div>
                     </div>
                   </div>
                   <button
                     className="w-full flex items-center gap-2 px-4 py-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                    onClick={() => navigate("/profile")}
+                    onClick={() => {
+                      navigate("/profile");
+                      setDropdownOpen(false);
+                    }}
                   >
                     <User size={18} />
                     View Profile
                   </button>
                   <button
-                    className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                    className="w-full flex items-center gap-2 px-4 py-2  hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                     onClick={handleLogout}
                   >
                     <LogOut size={18} />
-                    Logout
+                    Sign out
                   </button>
                 </div>
               )}

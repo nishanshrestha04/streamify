@@ -7,7 +7,7 @@ from accounts.models import Users
 from accounts.authentication import CustomJWTToken
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth import authenticate
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 
 class UserView(generics.ListCreateAPIView):
     queryset = Users.objects.all()
@@ -86,7 +86,7 @@ class LoginView(generics.GenericAPIView):
 
 
 class CurrentUserView(generics.GenericAPIView):
-    """Get current authenticated user"""
+    """Get and update current authenticated user"""
     serializer_class = UserProfileSerializer
     
     def get(self, request):
@@ -110,3 +110,51 @@ class CurrentUserView(generics.GenericAPIView):
         
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+    
+    def put(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "Not authenticated"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        
+        # Get the actual Users instance
+        if hasattr(request.user, 'users_instance'):
+            user = request.user.users_instance
+        else:
+            try:
+                user = Users.objects.get(username=request.user.username)
+            except Users.DoesNotExist:
+                return Response(
+                    {"error": "User profile not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        
+        # Handle password change if provided
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        
+        if new_password and current_password:
+            # Verify current password
+            if not check_password(current_password, user.password):
+                return Response(
+                    {"current_password": ["Current password is incorrect"]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            # Update password with proper hashing
+            user.password = make_password(new_password)
+            user.save()
+            
+            # Remove password fields from data before serializer update
+            data = request.data.copy()
+            data.pop('current_password', None)
+            data.pop('new_password', None)
+        else:
+            data = request.data
+        
+        serializer = self.get_serializer(user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

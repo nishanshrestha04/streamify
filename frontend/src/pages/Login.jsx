@@ -5,7 +5,7 @@ import logo_dark from "../assets/logo-dark.svg";
 import api from "../api";
 import { showSuccessToast, showErrorToast } from "../utils/toast.jsx";
 
-const Login = ({ setIsLoggedIn }) => {
+const Login = ({ setIsLoggedIn, setUser, fetchCurrentUser }) => {
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -42,9 +42,17 @@ const Login = ({ setIsLoggedIn }) => {
     try {
       const res = await api.post("accounts/login/", form);
       showSuccessToast("Login successful! Welcome back!");
-      setIsLoggedIn(true);
+      
+      // Store tokens
       localStorage.setItem("accessToken", res.data.access);
       localStorage.setItem("refreshToken", res.data.refresh);
+      
+      // Set login state and fetch user data
+      setIsLoggedIn(true);
+      if (fetchCurrentUser) {
+        await fetchCurrentUser();
+      }
+      
       navigate("/");
     } catch (err) {
       const data = err?.response?.data;

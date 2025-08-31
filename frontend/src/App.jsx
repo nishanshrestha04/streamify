@@ -10,7 +10,9 @@ import Home from "./pages/Home";
 import CreateVideo from "./pages/CreateVideo";
 import VideoWatch from "./pages/VideoWatch";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 import Sidebar from "./Components/Sidebar";
+import api from "./api";
 
 // Wrapper component to ensure VideoWatch remounts on ID change
 function VideoWatchWrapper() {
@@ -20,13 +22,38 @@ function VideoWatchWrapper() {
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null); // null = loading, false = not logged in, true = logged in
+  const [userDetail, setUser] = useState(null);
 
+  // Fetch current user data when logged in
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    setIsLoggedIn(!!token);
+    const loggedIn = !!token;
+    setIsLoggedIn(loggedIn);
 
+    if (loggedIn) {
+      fetchCurrentUser();
+    } else {
+      setUser(null);
+    }
+  }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await api.get('auth/user/');
+      console.log('🔍 fetchCurrentUser API response:', response.data);
+      console.log('📸 Profile photo in response:', response.data.profile_photo);
+      setUser(response.data);
+    } catch (err) {
+      console.error('Failed to fetch current user:', err);
+      // If user fetch fails, user is likely not authenticated
+      setUser(null);
+      setIsLoggedIn(false);
+    }
+  };
+
+  useEffect(() => {
     // Define allowed paths and path patterns
-    const allowedPaths = ["/", "/login", "/register", "/create-video", "/profile"];
+    const allowedPaths = ["/", "/login", "/register", "/create-video", "/profile", "/edit-profile"];
     const currentPath = window.location.pathname;
     
     // Check if current path is allowed
@@ -73,7 +100,7 @@ function App() {
     return (
       <div className="bg-white dark:bg-[#212121]">
         {!hideNavbar && (
-          <Navbar isLoggedIn={isLoggedIn} toggleSidebar={toggleSidebar} />
+          <Navbar isLoggedIn={isLoggedIn} toggleSidebar={toggleSidebar} userDetail={userDetail} />
         )}
         <div className="flex relative">
           {/* Regular sidebar for non-video pages */}
@@ -115,7 +142,7 @@ function App() {
                     isLoggedIn ? (
                       <Navigate to="/" replace />
                     ) : (
-                      <Login setIsLoggedIn={setIsLoggedIn} />
+                      <Login setIsLoggedIn={setIsLoggedIn} setUser={setUser} fetchCurrentUser={fetchCurrentUser} />
                     )
                   }
                 />
@@ -141,10 +168,20 @@ function App() {
                       <div className="min-h-screen bg-gray-50 dark:bg-[#181818] flex items-center justify-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                       </div>
-                    ) : isLoggedIn ? <Profile /> : <Navigate to="/login" replace />
+                    ) : isLoggedIn ? <Profile onUserUpdate={setUser} currentUser={userDetail} /> : <Navigate to="/login" replace />
                   } 
                 />
-                <Route path="/@:username" element={<Profile />} />
+                <Route 
+                  path="/edit-profile" 
+                  element={
+                    isLoggedIn === null ? (
+                      <div className="min-h-screen bg-gray-50 dark:bg-[#181818] flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                      </div>
+                    ) : isLoggedIn ? <EditProfile onUserUpdate={setUser} /> : <Navigate to="/login" replace />
+                  } 
+                />
+                <Route path="/@:username" element={<Profile onUserUpdate={setUser} currentUser={userDetail} />} />
                 <Route path="/shorts" element={<div className="p-4">Shorts Page</div>} />
                 <Route path="/subscriptions" element={<div className="p-4">Subscriptions Page</div>} />
                 <Route path="/history" element={<div className="p-4">History Page</div>} />

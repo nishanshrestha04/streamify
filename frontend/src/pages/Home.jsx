@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, ThumbsUp, Clock, MoreVertical, MessageCircle } from 'lucide-react';
 import api from '../api';
 import LikeButton from '../Components/LikeButton';
+import UserAvatar from '../Components/UserAvatar';
 import { formatDuration, formatViews, formatTimeAgo } from '../utils/videoUtils';
 
 const VideoCard = ({ video, onClick }) => {
@@ -35,9 +36,7 @@ const VideoCard = ({ video, onClick }) => {
       <div className="flex gap-4">
         {/* Channel Avatar */}
         <div className="flex-shrink-0">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-            {video.uploader?.first_name?.[0] || video.uploader?.username?.[0] || 'U'}
-          </div>
+          <UserAvatar user={video.uploader} size="lg" />
         </div>
 
         {/* Video Details */}

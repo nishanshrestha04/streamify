@@ -1,5 +1,6 @@
 import React from 'react';
 import { MessageCircle, Send, Heart } from 'lucide-react';
+import UserAvatar from './UserAvatar';
 
 const CommentSection = ({ 
   video,
@@ -13,12 +14,6 @@ const CommentSection = ({
   formatTimeAgo,
   navigate
 }) => {
-  const getUserInitial = (user) => {
-    if (user?.first_name) return user.first_name[0];
-    if (user?.username) return user.username[0];
-    return 'U';
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (newComment.trim()) {
@@ -39,9 +34,7 @@ const CommentSection = ({
       {currentUser ? (
         <form onSubmit={handleSubmit} className="mb-6">
           <div className="flex gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-              {getUserInitial(currentUser)}
-            </div>
+            <UserAvatar user={currentUser} size="md" />
             <div className="flex-1">
               <textarea
                 value={newComment}
@@ -93,9 +86,7 @@ const CommentSection = ({
         <div className="space-y-4">
           {comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-                {getUserInitial(comment.user)}
-              </div>
+              <UserAvatar user={comment.user} size="md" />
               
               <div className="flex-1">
                 <div className="bg-gray-50 dark:bg-[#2a2a2a] rounded-lg p-3">

@@ -4,9 +4,19 @@ from accounts.models import Users
 import os
 
 class UploaderSerializer(serializers.ModelSerializer):
+    profile_photo = serializers.SerializerMethodField()
+    
     class Meta:
         model = Users
-        fields = ['id', 'username', 'first_name', 'last_name']
+        fields = ['id', 'username', 'first_name', 'last_name', 'profile_photo']
+    
+    def get_profile_photo(self, obj):
+        if obj.profile_photo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.profile_photo.url)
+            return obj.profile_photo.url
+        return None
 
 class VideoSerializer(serializers.ModelSerializer):
     uploader = UploaderSerializer(read_only=True)
