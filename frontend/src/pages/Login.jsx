@@ -33,48 +33,51 @@ const Login = ({ setIsLoggedIn }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (loading) return;
+    
     setLoading(true);
-    api
-      .post("accounts/login/", form)
-      .then((res) => {
-        showSuccessToast("🎉 Login successful! Welcome back!");
-        setIsLoggedIn(true);
-        localStorage.setItem("accessToken", res.data.access);
-        localStorage.setItem("refreshToken", res.data.refresh);
-        navigate("/");
-      })
-      .catch((err) => {
-        const data = err?.response?.data;
-        let errorMsg = "An unexpected error occurred.";
+    
+    try {
+      const res = await api.post("accounts/login/", form);
+      showSuccessToast("Login successful! Welcome back!");
+      setIsLoggedIn(true);
+      localStorage.setItem("accessToken", res.data.access);
+      localStorage.setItem("refreshToken", res.data.refresh);
+      navigate("/");
+    } catch (err) {
+      const data = err?.response?.data;
+      let errorMsg = "An unexpected error occurred.";
 
-        if (data && typeof data === "object") {
-          if (data.error) {
-            if (typeof data.error === "string") {
-              errorMsg = data.error;
-            } else if (typeof data.error === "object") {
-              const firstErrorArr = Object.values(data.error).flat();
-              errorMsg = firstErrorArr.length ? firstErrorArr[0] : errorMsg;
-            }
-          } else {
-            const firstErrorArr = Object.values(data).flat();
+      if (data && typeof data === "object") {
+        if (data.error) {
+          if (typeof data.error === "string") {
+            errorMsg = data.error;
+          } else if (typeof data.error === "object") {
+            const firstErrorArr = Object.values(data.error).flat();
             errorMsg = firstErrorArr.length ? firstErrorArr[0] : errorMsg;
           }
-        } else if (typeof data === "string") {
-          errorMsg = data;
+        } else {
+          const firstErrorArr = Object.values(data).flat();
+          errorMsg = firstErrorArr.length ? firstErrorArr[0] : errorMsg;
         }
+      } else if (typeof data === "string") {
+        errorMsg = data;
+      }
 
-        if (
-          errorMsg.toLowerCase().includes("invalid credentials") ||
-          errorMsg.toLowerCase().includes("no active account found") ||
-          errorMsg.toLowerCase().includes("invalid username or password")
-        ) {
-          errorMsg = "Invalid username or password";
-        }
-        showErrorToast(`❌ ${errorMsg}`);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      if (
+        errorMsg.toLowerCase().includes("invalid credentials") ||
+        errorMsg.toLowerCase().includes("no active account found") ||
+        errorMsg.toLowerCase().includes("invalid username or password")
+      ) {
+        errorMsg = "Invalid username or password";
+      }
+      showErrorToast(errorMsg);
+      
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

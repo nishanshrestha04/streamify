@@ -99,7 +99,7 @@ const VideoSidebar = ({
 
               {/* Video Info */}
               <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm line-clamp-2 text-gray-900 dark:text-white leading-tight mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <h4 className="font-medium text-sm line-clamp-2 text-gray-900 dark:text-white leading-tight mb-1  transition-colors">
                   {video.title || 'Untitled Video'}
                 </h4>
                 

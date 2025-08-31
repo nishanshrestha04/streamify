@@ -2,10 +2,25 @@ import React from 'react';
 import { toast } from 'react-toastify';
 import '../styles/toast.css';
 
+// Keep track of recent toasts to prevent duplicates
+const recentToasts = new Set();
+
+const preventDuplicate = (message, type) => {
+  const key = `${type}:${message}`;
+  if (recentToasts.has(key)) {
+    return true; // Skip duplicate
+  }
+  recentToasts.add(key);
+  setTimeout(() => recentToasts.delete(key), 2000); // Clear after 2 seconds
+  return false;
+};
+
 // Custom toast configurations with beautiful styling
 export const showSuccessToast = (message, options = {}) => {
+  if (preventDuplicate(message, 'success')) return;
+  
   return toast.success(message, {
-    autoClose: 1000,
+    autoClose: 3000, // Increased from 1000 to 3000
     className: 'toast-bounce',
     style: {
       background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
@@ -23,9 +38,11 @@ export const showSuccessToast = (message, options = {}) => {
 };
 
 export const showErrorToast = (message, options = {}) => {
+  if (preventDuplicate(message, 'error')) return;
+  
   return toast.error(message, {
-    autoClose: 1000,
-    className: 'toast-urgent',
+    autoClose: 4000, // Increased from 1000 to 4000 for errors
+    className: 'toast-bounce',
     style: {
       background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
       color: 'white',
@@ -42,8 +59,10 @@ export const showErrorToast = (message, options = {}) => {
 };
 
 export const showInfoToast = (message, options = {}) => {
+  if (preventDuplicate(message, 'info')) return;
+  
   return toast.info(message, {
-    autoClose: 1000,
+    autoClose: 3000, // Increased from 1000 to 3000
     style: {
       background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
       color: 'white',
@@ -60,8 +79,10 @@ export const showInfoToast = (message, options = {}) => {
 };
 
 export const showWarningToast = (message, options = {}) => {
+  if (preventDuplicate(message, 'warning')) return;
+  
   return toast.warning(message, {
-    autoClose: 1000,
+    autoClose: 3000, // Increased from 1000 to 3000
     style: {
       background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
       color: 'white',

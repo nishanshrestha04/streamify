@@ -17,7 +17,6 @@ const Sidebar = ({ isCollapsed, isLoggedIn }) => {
         { icon: History, label: "History", path: "/history" },
         { icon: Clock, label: "Watch later", path: "/watch-later" },
         { icon: ThumbsUp, label: "Liked videos", path: "/liked" },
-        { icon: Download, label: "Downloads", path: "/downloads" },
       ]
     : [
         { icon: History, label: "History", path: "/history" },

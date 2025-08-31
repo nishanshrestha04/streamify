@@ -37,7 +37,7 @@ class UserView(generics.ListCreateAPIView):
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Users.objects.all()
     serializer_class = UserProfileSerializer
-    lookup_field = 'pk'
+    lookup_field = 'username'
 
 
 class LoginView(generics.GenericAPIView):

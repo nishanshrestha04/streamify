@@ -18,25 +18,27 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Only redirect to login for specific endpoints that require auth
-      // Don't redirect for expected 401s like /api/auth/user/ for unauthenticated users
       const url = error.config?.url || '';
-      const shouldRedirect = ![
+      
+      // Don't remove tokens for login attempts or expected 401s
+      const isLoginAttempt = url.includes('login/');
+      const isExpectedUnauth = [
         'auth/user/',
         'videos/',
         'comments/'
       ].some(endpoint => url.includes(endpoint));
 
-      if (shouldRedirect && localStorage.getItem('accessToken')) {
+      if (!isLoginAttempt && !isExpectedUnauth && localStorage.getItem('accessToken')) {
         // Only redirect if we had a token (meaning it expired)
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         window.location.href = '/login';
-      } else if (!shouldRedirect) {
-        // For expected 401s, just remove tokens but don't redirect
+      } else if (isExpectedUnauth && !isLoginAttempt) {
+        // For expected 401s (not login), just remove tokens but don't redirect
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
       }
+      // For login attempts, don't remove tokens or redirect
     }
     return Promise.reject(error);
   }

@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import CreateVideo from "./pages/CreateVideo";
 import VideoWatch from "./pages/VideoWatch";
+import Profile from "./pages/Profile";
 import Sidebar from "./Components/Sidebar";
 
 // Wrapper component to ensure VideoWatch remounts on ID change
@@ -18,17 +19,23 @@ function VideoWatchWrapper() {
 }
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(null); // null = loading, false = not logged in, true = logged in
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     setIsLoggedIn(!!token);
 
-    // Force browser to "/" on reload if not already there
-    const allowedPaths = ["/", "/login", "/register", "/create-video"];
-    const isWatchPath = window.location.pathname.startsWith("/watch/");
+    // Define allowed paths and path patterns
+    const allowedPaths = ["/", "/login", "/register", "/create-video", "/profile"];
+    const currentPath = window.location.pathname;
     
-    if (!allowedPaths.includes(window.location.pathname) && !isWatchPath) {
+    // Check if current path is allowed
+    const isAllowedPath = allowedPaths.includes(currentPath) ||
+                         currentPath.startsWith("/watch/") ||
+                         currentPath.startsWith("/profile/") ||
+                         currentPath.startsWith("/@");
+    
+    if (!isAllowedPath) {
       window.location.replace("/");
     }
   }, []);
@@ -120,9 +127,24 @@ function App() {
                 <Route 
                   path="/create-video" 
                   element={
-                    isLoggedIn ? <CreateVideo /> : <Navigate to="/login" replace />
+                    isLoggedIn === null ? (
+                      <div className="min-h-screen bg-gray-50 dark:bg-[#181818] flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                      </div>
+                    ) : isLoggedIn ? <CreateVideo /> : <Navigate to="/login" replace />
                   } 
                 />
+                <Route 
+                  path="/profile" 
+                  element={
+                    isLoggedIn === null ? (
+                      <div className="min-h-screen bg-gray-50 dark:bg-[#181818] flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                      </div>
+                    ) : isLoggedIn ? <Profile /> : <Navigate to="/login" replace />
+                  } 
+                />
+                <Route path="/@:username" element={<Profile />} />
                 <Route path="/shorts" element={<div className="p-4">Shorts Page</div>} />
                 <Route path="/subscriptions" element={<div className="p-4">Subscriptions Page</div>} />
                 <Route path="/history" element={<div className="p-4">History Page</div>} />

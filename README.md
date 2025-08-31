@@ -1,4 +1,3 @@
-
 # Streamify - Full-Stack Video Streaming Platform
 
 Streamify is a modern, full-stack video streaming application built with a Django backend and a React frontend. It provides a platform for users to upload, watch, and interact with video content.
