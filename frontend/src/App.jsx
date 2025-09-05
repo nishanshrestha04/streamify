@@ -12,6 +12,7 @@ import VideoWatch from "./pages/VideoWatch";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Sidebar from "./Components/Sidebar";
+import SearchResults from "./pages/SearchResults";
 import api from "./api";
 
 // Wrapper component to ensure VideoWatch remounts on ID change
@@ -161,6 +162,7 @@ function App() {
                     ) : isLoggedIn ? <CreateVideo /> : <Navigate to="/login" replace />
                   } 
                 />
+                <Route path="/search" element={<SearchResults />} />
                 <Route 
                   path="/profile" 
                   element={

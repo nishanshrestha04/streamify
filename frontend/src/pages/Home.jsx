@@ -36,7 +36,7 @@ const VideoCard = ({ video, onClick }) => {
       <div className="flex gap-4">
         {/* Channel Avatar */}
         <div className="flex-shrink-0">
-          <UserAvatar user={video.uploader} size="lg" />
+          <UserAvatar user={video.uploader} size="md" />
         </div>
 
         {/* Video Details */}

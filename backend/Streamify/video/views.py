@@ -13,6 +13,7 @@ from .serializers import (
     VideoSerializer, VideoUploadSerializer, VideoLikeSerializer, 
     VideoListSerializer
 )
+from .tasks import transcribe_video_task
 from accounts.models import Users
 import os
 from datetime import timedelta
@@ -68,7 +69,7 @@ class VideoUploadView(generics.CreateAPIView):
             video_instance = serializer.save(
                 uploader=user,
                 file_size=serializer.validated_data['video_file'].size,
-                processing_status='ready'
+                processing_status='processing'  # Set status to processing
             )
             
             # Extract video duration
@@ -78,6 +79,9 @@ class VideoUploadView(generics.CreateAPIView):
                 if duration:
                     video_instance.duration = duration
                     video_instance.save()
+            
+            # Trigger the background task
+            transcribe_video_task.delay(video_instance.id)
                     
         except Users.DoesNotExist:
             from rest_framework.exceptions import ValidationError
@@ -95,7 +99,7 @@ class VideoUploadView(generics.CreateAPIView):
         # Return full video details using VideoSerializer
         response_serializer = VideoSerializer(serializer.instance, context={'request': request})
         return Response({
-            'message': 'Video uploaded successfully!',
+            'message': 'Video uploaded successfully! Transcription has started.',
             'video': response_serializer.data
         }, status=status.HTTP_201_CREATED)
 

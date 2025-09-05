@@ -23,6 +23,8 @@ class Video(models.Model):
     PROCESSING_STATUS_CHOICES = [
         ('uploading', 'Uploading'),
         ('processing', 'Processing'),
+
+        ('transcribing', 'Transcribing'),
         ('ready', 'Ready'),
         ('failed', 'Failed'),
     ]
@@ -39,6 +41,7 @@ class Video(models.Model):
     file_size = models.BigIntegerField(blank=True, null=True)  # in bytes
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='public')
     processing_status = models.CharField(max_length=20, choices=PROCESSING_STATUS_CHOICES, default='uploading')
+    transcript = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

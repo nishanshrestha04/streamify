@@ -8,6 +8,25 @@ from accounts.authentication import CustomJWTToken
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password, make_password
+from video.models import Video
+from video.serializers import VideoSerializer
+
+class VideoSearchView(generics.ListAPIView):
+    """ 
+    A view for searching videos based on transcript content.
+    """
+    serializer_class = VideoSerializer
+
+    def get_queryset(self):
+        query = self.request.query_params.get('q', None)
+        if query:
+            # Search for videos where the 'text' key in the 'transcript' JSON field contains the query
+            return Video.objects.filter(
+                processing_status='ready',
+                visibility='public',
+                transcript__text__icontains=query
+            )
+        return Video.objects.none() # Return no results if no query
 
 class UserView(generics.ListCreateAPIView):
     queryset = Users.objects.all()

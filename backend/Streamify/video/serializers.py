@@ -34,7 +34,7 @@ class VideoSerializer(serializers.ModelSerializer):
             'uploader', 'views', 'likes', 'dislikes', 'duration',
             'formatted_duration', 'file_size', 'formatted_file_size',
             'visibility', 'processing_status', 'user_reaction', 'comments_count',
-            'created_at', 'updated_at'
+            'transcript', 'created_at', 'updated_at'
         ]
         read_only_fields = ['uploader', 'views', 'likes', 'dislikes', 'processing_status']
     

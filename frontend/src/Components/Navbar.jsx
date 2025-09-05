@@ -17,6 +17,14 @@ const Navbar = ({ isLoggedIn, toggleSidebar, userDetail }) => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [query, setQuery] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/search?q=${query.trim()}`);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -49,21 +57,23 @@ const Navbar = ({ isLoggedIn, toggleSidebar, userDetail }) => {
           <img src={logo_dark} alt="logo" className="w-40 hidden dark:block" />
         </div>
       </div>
-      <div className="middle w-1/3">
+      <form className="middle w-1/3" onSubmit={handleSearch}>
         <div className="relative">
           <input
             type="text"
             placeholder="Search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className="w-full border border-[#c6c6c6] dark:border-[hsl(0,0%,18.82%)] rounded-full px-4 py-2 pr-12 focus:outline-blue-600 focus:border-none bg-white dark:bg-[#232323] text-black dark:text-white"
           />
           <button
-            type="button"
+            type="submit"
             className="cursor-pointer flex items-center justify-center absolute right-0 top-1/2  -translate-y-1/2 bg-[#c6c6c6] dark:bg-[hsla(0,0%,100%,.08)] rounded-r-full w-15 px-4 h-full"
           >
             <Search size={20} className="text-black dark:text-white" />
           </button>
         </div>
-      </div>
+      </form>
       <div className="right flex items-center gap-3">
         {isLoggedIn ? (
           <>

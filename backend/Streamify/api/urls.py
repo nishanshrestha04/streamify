@@ -7,4 +7,5 @@ urlpatterns = [
     path('user/<int:pk>/', views.UserDetailView.as_view(), name='user-detail'),
     path('login/', views.LoginView.as_view(), name='user-login'),
     path('auth/user/', views.CurrentUserView.as_view(), name='current-user'),
+    path('search/', views.VideoSearchView.as_view(), name='video-search'),
 ]

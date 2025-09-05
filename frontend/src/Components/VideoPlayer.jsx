@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipForward } from 'lucide-react';
 
 const VideoPlayer = ({ video, onTimeUpdate, onVideoEnd, onPlayNext, hasNextVideo }) => {
@@ -13,6 +14,19 @@ const VideoPlayer = ({ video, onTimeUpdate, onVideoEnd, onPlayNext, hasNextVideo
   const progressRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
   const containerRef = useRef(null);
+  const location = useLocation();
+
+  // Effect to handle seeking from URL hash
+  useEffect(() => {
+    const hash = location.hash;
+    if (hash && videoRef.current) {
+      const time = parseFloat(hash.substring(2)); // #t=...
+      if (!isNaN(time)) {
+        videoRef.current.currentTime = time;
+        videoRef.current.play();
+      }
+    }
+  }, [location.hash]);
 
   // Auto-hide controls functionality
   const hideControlsAfterDelay = () => {
