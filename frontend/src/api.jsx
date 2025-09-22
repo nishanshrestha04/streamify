@@ -44,4 +44,10 @@ api.interceptors.response.use(
   }
 );
 
+// API helper functions
+export const deleteVideo = async (videoId) => {
+  const response = await api.delete(`videos/${videoId}/delete/`);
+  return response.data;
+};
+
 export default api;

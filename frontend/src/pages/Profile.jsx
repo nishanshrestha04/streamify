@@ -1,9 +1,11 @@
-import { Calendar, Eye, Settings, ThumbsUp, Video } from 'lucide-react';
+import { Calendar, Eye, Settings, ThumbsUp, Video, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import UserAvatar from '../Components/UserAvatar';
-import api from '../api';
+import ConfirmationModal from '../Components/ConfirmationModal';
+import api, { deleteVideo } from '../api';
 import { formatTimeAgo, formatViews } from '../utils/videoUtils';
+import { showSuccessToast, showErrorToast } from '../utils/toast';
 
 const Profile = ({ onUserUpdate, currentUser: propCurrentUser }) => {
   const { username } = useParams();
@@ -18,6 +20,11 @@ const Profile = ({ onUserUpdate, currentUser: propCurrentUser }) => {
     totalViews: 0,
     totalVideos: 0,
     totalLikes: 0
+  });
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    videoId: null,
+    videoTitle: ''
   });
 
   // Update currentUser when propCurrentUser changes
@@ -110,6 +117,49 @@ const Profile = ({ onUserUpdate, currentUser: propCurrentUser }) => {
 
   const handleVideoClick = (videoId) => {
     navigate(`/watch/${videoId}`);
+  };
+
+  const handleDeleteVideo = async (videoId, videoTitle, event) => {
+    // Prevent the video click event from firing
+    event.stopPropagation();
+    
+    // Open confirmation modal
+    setDeleteModal({
+      isOpen: true,
+      videoId,
+      videoTitle
+    });
+  };
+
+  const confirmDeleteVideo = async () => {
+    try {
+      const { videoId, videoTitle } = deleteModal;
+      
+      await deleteVideo(videoId);
+      
+      // Remove the video from the local state
+      setVideos(prevVideos => prevVideos.filter(video => video.id !== videoId));
+      
+      // Update stats
+      setStats(prevStats => ({
+        ...prevStats,
+        totalVideos: prevStats.totalVideos - 1
+      }));
+      
+      // Close modal
+      setDeleteModal({ isOpen: false, videoId: null, videoTitle: '' });
+      
+      // Show success toast
+      showSuccessToast(`Video "${videoTitle}" deleted successfully!`);
+      
+    } catch (error) {
+      console.error('Failed to delete video:', error);
+      showErrorToast('Failed to delete video. Please try again.');
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ isOpen: false, videoId: null, videoTitle: '' });
   };
 
   const navigateToUserProfile = (username) => {
@@ -303,11 +353,15 @@ const Profile = ({ onUserUpdate, currentUser: propCurrentUser }) => {
                 {videos.map(video => (
                   <div
                     key={video.id}
-                    onClick={() => handleVideoClick(video.id)}
-                    className="bg-white dark:bg-[#212121] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => video.processing_status === 'ready' ? handleVideoClick(video.id) : null}
+                    className={`bg-white dark:bg-[#212121] rounded-lg overflow-hidden shadow-sm transition-shadow ${
+                      video.processing_status === 'ready' 
+                        ? 'hover:shadow-md cursor-pointer' 
+                        : 'opacity-70 cursor-not-allowed'
+                    }`}
                   >
                     {/* Video Thumbnail */}
-                    <div className="aspect-video bg-gray-200 dark:bg-gray-700 relative">
+                    <div className="aspect-video bg-gray-200 dark:bg-gray-700 relative group">
                       {video.thumbnail_url ? (
                         <img
                           src={video.thumbnail_url}
@@ -324,6 +378,16 @@ const Profile = ({ onUserUpdate, currentUser: propCurrentUser }) => {
                           {video.duration}
                         </span>
                       )}
+                      {/* Delete button - only show on own profile */}
+                      {isOwn && (
+                        <button
+                          onClick={(e) => handleDeleteVideo(video.id, video.title, e)}
+                          className="absolute top-2 right-2 bg-red-600 bg-opacity-80 hover:bg-opacity-100 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          title="Delete video"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
 
                     {/* Video Info */}
@@ -331,6 +395,31 @@ const Profile = ({ onUserUpdate, currentUser: propCurrentUser }) => {
                       <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
                         {video.title}
                       </h3>
+                      
+                      {/* Processing Status */}
+                      {video.processing_status && video.processing_status !== 'ready' && (
+                        <div className="mb-2">
+                          {video.processing_status === 'processing' && (
+                            <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm">
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                              Processing...
+                            </div>
+                          )}
+                          {video.processing_status === 'transcribing' && (
+                            <div className="flex items-center text-yellow-600 dark:text-yellow-400 text-sm">
+                              <div className="animate-pulse rounded-full h-3 w-3 bg-yellow-600 mr-2"></div>
+                              Transcribing...
+                            </div>
+                          )}
+                          {video.processing_status === 'failed' && (
+                            <div className="flex items-center text-red-600 dark:text-red-400 text-sm">
+                              <div className="rounded-full h-3 w-3 bg-red-600 mr-2"></div>
+                              Processing Failed
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                         <div className="flex items-center justify-between">
                           <span>{formatViews(video.views)} views</span>
@@ -387,6 +476,17 @@ const Profile = ({ onUserUpdate, currentUser: propCurrentUser }) => {
           </div>
         )}
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDeleteVideo}
+        title="Delete Video"
+        message={`Are you sure you want to delete "${deleteModal.videoTitle}"? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmButtonColor="bg-red-600 hover:bg-red-700"
+      />
     </div>
   );
 };
