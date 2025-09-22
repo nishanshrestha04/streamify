@@ -69,7 +69,7 @@ class VideoUploadView(generics.CreateAPIView):
             video_instance = serializer.save(
                 uploader=user,
                 file_size=serializer.validated_data['video_file'].size,
-                processing_status='processing'  # Set status to processing
+                processing_status='processing'  # Set status to processing, will be ready after transcription
             )
             
             # Extract video duration
@@ -81,7 +81,10 @@ class VideoUploadView(generics.CreateAPIView):
                     video_instance.save()
             
             # Trigger the background task
-            transcribe_video_task.delay(video_instance.id)
+            try:
+                transcribe_video_task.delay(video_instance.id)
+            except Exception as task_error:
+                print(f"Background task failed: {task_error}")
                     
         except Users.DoesNotExist:
             from rest_framework.exceptions import ValidationError
@@ -99,7 +102,7 @@ class VideoUploadView(generics.CreateAPIView):
         # Return full video details using VideoSerializer
         response_serializer = VideoSerializer(serializer.instance, context={'request': request})
         return Response({
-            'message': 'Video uploaded successfully! Transcription has started.',
+            'message': 'Video uploaded successfully! It will appear on the homepage after transcription completes.',
             'video': response_serializer.data
         }, status=status.HTTP_201_CREATED)
 
@@ -108,10 +111,21 @@ class VideoListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
     
     def get_queryset(self):
-        queryset = Video.objects.filter(
-            visibility='public',
-            processing_status='ready'
-        ).select_related('uploader')
+        # Filter by uploader first
+        uploader = self.request.query_params.get('uploader', None)
+        
+        if uploader:
+            # For profile pages: show all videos by the user (including processing ones)
+            queryset = Video.objects.filter(
+                uploader__username=uploader,
+                visibility='public'
+            ).select_related('uploader')
+        else:
+            # For homepage: only show ready videos
+            queryset = Video.objects.filter(
+                visibility='public',
+                processing_status='ready'
+            ).select_related('uploader')
         
         # Search functionality
         search = self.request.query_params.get('search', None)
@@ -119,11 +133,6 @@ class VideoListView(generics.ListAPIView):
             queryset = queryset.filter(
                 Q(title__icontains=search) | Q(description__icontains=search)
             )
-        
-        # Filter by uploader
-        uploader = self.request.query_params.get('uploader', None)
-        if uploader:
-            queryset = queryset.filter(uploader__username=uploader)
         
         return queryset.order_by('-created_at')
 
@@ -320,6 +329,61 @@ class VideoLikeView(APIView):
         except Exception as e:
             return Response({
                 'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VideoDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def delete(self, request, video_id):
+        """Delete a video (only if user is the uploader)"""
+        try:
+            # Get the video
+            video = get_object_or_404(Video, id=video_id)
+            
+            # Get the authenticated user's profile
+            try:
+                if hasattr(request.user, 'users_instance'):
+                    user = request.user.users_instance
+                else:
+                    user = Users.objects.get(username=request.user.username)
+            except Users.DoesNotExist:
+                return Response({
+                    'error': 'User profile not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if user is the uploader
+            if video.uploader != user:
+                return Response({
+                    'error': 'You can only delete your own videos'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Store video info for response
+            video_title = video.title
+            
+            # Delete the video files from disk
+            try:
+                if video.video_file and video.video_file.path:
+                    if os.path.exists(video.video_file.path):
+                        os.remove(video.video_file.path)
+                
+                if video.thumbnail and video.thumbnail.path:
+                    if os.path.exists(video.thumbnail.path):
+                        os.remove(video.thumbnail.path)
+            except Exception as file_error:
+                print(f"Error deleting files: {file_error}")
+                # Continue with database deletion even if file deletion fails
+            
+            # Delete the video record from database
+            video.delete()
+            
+            return Response({
+                'message': f'Video "{video_title}" deleted successfully'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"Error deleting video: {e}")
+            return Response({
+                'error': 'Failed to delete video'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserVideosView(generics.ListAPIView):

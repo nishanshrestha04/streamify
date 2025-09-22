@@ -11,6 +11,9 @@ urlpatterns = [
     # Video detail
     path('<int:video_id>/', views.VideoDetailView.as_view(), name='video-detail'),
     
+    # Video delete
+    path('<int:video_id>/delete/', views.VideoDeleteView.as_view(), name='video-delete'),
+    
     # Video like/dislike
     path('<int:video_id>/like/', views.VideoLikeView.as_view(), name='video-like'),
     

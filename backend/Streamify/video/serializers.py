@@ -142,7 +142,7 @@ class VideoListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'thumbnail_url', 'uploader', 'views',
             'likes', 'dislikes', 'formatted_duration', 'user_reaction',
-            'comments_count', 'created_at'
+            'comments_count', 'processing_status', 'created_at'
         ]
     
     def get_thumbnail_url(self, obj):
