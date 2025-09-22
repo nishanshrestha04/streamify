@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'accounts', 
     'comments',
     'video',
-    'subscription',
 
     'rest_framework',
     'rest_framework_simplejwt',
