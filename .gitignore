@@ -31,3 +31,4 @@ instance/
 *.sqlite3
 .DS_Store
 env/
+.venv/
